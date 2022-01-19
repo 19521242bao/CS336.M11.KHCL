@@ -11,7 +11,7 @@ import numpy as np
 
 from keras.preprocessing import image
 
-class DeepResnet:
+class DeepRESNET:
 
     def __init__(self):
         self.model  = ResNet50(weights='imagenet', include_top=True)
@@ -33,7 +33,7 @@ def main(args):
   
     img = cv2.imread(args['input_path'])
     extrator = None
-    extractor = DeepResnet()
+    extractor = DeepRESNET()
     feature = extractor.extract(img)
     feature2 = extractor.extract(img)
     print("Shape feature: ", feature.shape)
