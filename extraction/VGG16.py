@@ -2,10 +2,9 @@ import cv2
 from skimage.feature import hog
 import argparse
 import numpy as np
-
-from keras.preprocessing import image
-from keras.applications.vgg16 import VGG16
-from keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.vgg16 import VGG16
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
 class DeepVGG16:
 
