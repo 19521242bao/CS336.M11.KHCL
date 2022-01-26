@@ -3,15 +3,15 @@ import numpy as np
 from tqdm import tqdm
 import os
 import cv2
-
 from extraction.COLOR import COLOR
 from extraction.DELF import DeepDELF
 from extraction.SIFT import SIFT
 from extraction.SURF import SURF
 from extraction.VGG16 import DeepVGG16
 from extraction.HOG import HOG 
+from extraction.RESNET import DeepRESNET
 from config import SIZE_PROJECTION, RANDOM_SEED
-from util import signature_bit
+from utils import signature_bit
 from glob import glob
 import json
 
@@ -26,19 +26,20 @@ def extract_database(input_path, method, LSH):
         elif method == 'HOG':
             extractor = HOG()
         elif method == "SIFT":
-            pass
+            extractor=SIFT()
         elif method == "SURF":
             pass
+        elif method=="RESNET":
+            extractor =DeepRESNET()
         elif method == "VGG16":
             extractor = DeepVGG16()
-        elif method == "facenet":
-            pass 
 
         for img_name in tqdm(os.listdir(input_path)):
             img_path = os.path.join(input_path,img_name)
-            print("\n[INFO] Processing: img: {} method: {}, use LSH: {} \npath_img: {}".format( \
+            print("\n Processing: img: {} method: {}, use LSH: {} \npath_img: {}".format( \
             img_name, method,LSH, img_path))
             img = cv2.imread(img_path)
+            print(extractor)
             feature = extractor.extract(img)
             features.append(feature)
             path_list.append(img_path)
