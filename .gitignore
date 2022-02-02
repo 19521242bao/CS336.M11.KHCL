@@ -1,2 +1,2 @@
-**/static/**.jpg
-*.jpg
+**/static/**/*.jpg
+**/static/**/*.npy
