@@ -1,2 +1,6 @@
 **/static/**/*.jpg
 **/static/**/*.npy
+**/feature_extraction_method_1
+cnnImageRetrievalPytorch.py
+test_app.py
+**/cirtorch
