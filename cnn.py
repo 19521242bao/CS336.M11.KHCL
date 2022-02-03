@@ -1,70 +1,64 @@
-# import cac thu vien can thiet
-from grpc import server
-from cirtorch.networks.imageretrievalnet import extract_vectors
+import os
+import cv2
+from numpy import extract
 from tqdm import tqdm
-from cnnImageRetrievalPytorch import Searching, load_network
+from scipy.spatial import cKDTree
+from skimage.measure import ransac
+from skimage.transform import AffineTransform
+
+from similarity_measure import *
+from extraction.VGG16 import DeepVGG16
+from extraction.RESNET import DeepRESNET
+from cnn_config import SIZE_PROJECTION, RANDOM_SEED, DISTANCE_THRESOLD
+from glob import glob
 import numpy as np
-import glob
+from cnn_utils import signature_bit
+import matplotlib.pyplot as plt
 
 
-def load_corpus(path):
-    print("Loading Corpus ...")
-    list_image = glob.glob(path + '*.jpg')
-    # print(list_image)
+def save_result(rank, path_storage, score, query_name, save_file):
 
-    print(">>> Sucess...")
-    print('__________________________\n')
-    list_image = [i.split('\\')[-1] for i in list_image]
-    return list_image
+    np.savez_compressed(save_file, ranks=rank, paths=path_storage,
+                        scores=score, query_name=query_name)
 
-def load_features(path, corpus):
 
-    feature_method_1 = {}
-    print("Loading Feature method 1...")
-    with tqdm(total=len(corpus)) as pbar:
-        for img in corpus:
-            feature_method_1[img] = np.load(
-                path + 'static/features/feature_oxford_2/' + img[:-3] + 'npy')
-            pbar.update(1)
-    print(">>> Sucess...")
-    print('__________________________\n')
+def retrieve_img_resnet(img_path, features_storage, input_path):
+    querys_features = []
+    extractor = None
+    extractor = DeepRESNET()
+    img = cv2.imread(img_path)
+    # print(img)
+    query_feature = extractor.extract(img)
 
-    return feature_method_1
+    measure = Cosine_Measure()
+    dist = measure.compute_similarity(query_feature, features_storage)
+    score = np.sort(dist)[::-1]
+    rank = np.argsort(dist)[::-1]
+    ranks_show = rank[:20]
+    scores_show = score[:20]
+    query_name = glob(input_path + '/*')
+    query_img = cv2.imread(img_path)
+    list_result = []
+    for rank in ranks_show:
+        list_result.append(query_name[rank])
+    return list_result
 
-def method_1(query_path, bbx, feature_corpus, net, transform, ms):
-    feature_query = extract_vectors(
-        net, [query_path], 1024, transform, bbxs=[bbx], ms=ms)
-    results = Searching(feature_query, feature_corpus, 20)
 
-    return results.reverse()
-
-def preload():
-    path_corpus = ".\static\images\database_oxford\\"
-    corpus = load_corpus(path_corpus)
-    feature_corpus = load_features("", corpus)
-    net, transform, ms = load_network()
-
-    # net.cuda()
-    # net.eval()
-
-    return feature_corpus, net, transform, ms
-
-def search(query_path, feature_corpus, net, transform, ms):
-    query_path.replace("\\", "\\\\")
-    
-
-    # Extract Query
-    # query_img = cv2.imread(query_path)
-    feature_query = extract_vectors(net, [query_path], 1024, transform, ms=ms)
-    results = Searching(feature_query, feature_corpus, top=10)
+def search(query_path):
+    feature_path = "./static/features/feature/RESNET.npz"
+    input_path = "./static/images/database_oxford"
+    data = np.load(feature_path, allow_pickle=True)
+    features_storage = data['features']
+    results = retrieve_img_resnet(query_path, features_storage, input_path)
+    results = [i.split("\\")[-1] for i in results]
 
     return_data = []
 
     for result in results:
-        return_data.append([0, 0, "./static/images/resized_oxford/" + result[0]])
+        return_data.append([0, 0, "./static/images/database_oxford/" + result])
 
     return return_data
 
 
-if __name__ == '__main__':
-    pass
+if __name__ == "__main__":
+    print(search(r"C:\Users\PND280\Documents\GitHub\CS336_M11.KHCL\query_img\all_souls_2.jpg"))

@@ -7,11 +7,11 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
-from cnn import search as CNNSearch
-from cnn import preload as CNNPreload
+from cnnImageRetrievalPytorch import search as CNNSearch
+from cnnImageRetrievalPytorch import preload as CNNPreload
 from flask import Flask, flash, redirect, render_template, request, url_for
 from PIL import Image, ImageOps
-from resnet import search as ResNetSearch
+from cnn import search as ResNetSearch
 from scipy.spatial import cKDTree
 from skimage.measure import ransac
 from skimage.transform import AffineTransform
@@ -331,10 +331,10 @@ def search():
             index = top_match[i]
             index = index['index']
             scores.append((building_descs[index], db_images[index], base[index]))
-    elif data["method"] == "cnn":
+    elif data["method"] == "cnn_pytorch":
         if __name__ == "__main__":
             scores = CNNSearch(upload_img_path, feature_corpus, net, transform, ms)
-    elif data["method"] == "resnet":
+    elif data["method"] == "cnn":
         scores = ResNetSearch(upload_img_path)
 
     end = timeit.default_timer()
