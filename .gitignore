@@ -2,3 +2,4 @@
 **/static/**/*.npy
 data/networks/gl18-tl-resnet152-gem-w-21278d5.pth
 __pycache__
+*.pyc
