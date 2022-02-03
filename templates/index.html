@@ -35,7 +35,13 @@
                     </p>
             
                     <p>
-                        <label for="datasets">Choose dataset:</label>
+                        <label for="methods">Method:</label>
+                        <select name="methods" id="methods">
+                            <option value="delf" selected>DELF</option>
+                            <option value="resnet">ResNet</option>
+                            <option value="cnn">CNN</option>
+                        </select>
+                        <label for="datasets">Dataset:</label>
                         <select name="datasets" id="datasets">
                             <option value="oxford">Oxford</option>
                             <option value="paris">Paris</option>
@@ -69,8 +75,30 @@
         </div>
 
         <script>
+            $("#methods").change(function(data) {
+                switch ($(this).val()) {
+                    case "delf":
+                        $("#datasets option").remove();
+                        $("#datasets").append('<option id="oxford" value="oxford">Oxford</option>');
+                        $("#datasets").append('<option id="oxford" value="paris">Paris</option>');
+                        break;
+
+                    case "resnet":
+                        $("#datasets option").remove();
+                        $("#datasets").append('<option id="oxford" value="oxford">Oxford</option>');
+                        break;
+
+                    case "cnn":
+                        $("#datasets option").remove();
+                        $("#datasets").append('<option id="oxford" value="oxford">Oxford</option>');
+                        break;
+                }
+            })
+        </script>
+
+        <script>
             const stage = Jcrop.attach("query");
-            $("#search").click(function(){
+            $("#search").click(function() {
                 const data = stage.active != null ? stage.active.pos : {"file": "{{filename}}", "x": "-1"};
                 data.file = "{{filename}}";
                 data.dataset = $("#datasets").val();
@@ -83,7 +111,7 @@
                 $(".upload-section").attr("class", "upload-section col-6");
                 $(".result-section").attr("class", "result-section col-6");
                 $.post("crop", data, function() {
-                    $.post("search", {}, function (data) {        
+                    $.post("search", {method: $("#methods").val()}, function (data) {        
                         $(".gallery").before('<div class="elapsed"><b>Elapsed time:</b> ' + data.elapsed + " seconds </div>");
                         if (data.scores.length > 1) {
                             for (let i = 0; i < data.scores.length; i++) {
@@ -170,7 +198,7 @@
                     copy.remove();
                 }, 500)
             })      
-        </script>
+        </>
 
         <script
 			src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"

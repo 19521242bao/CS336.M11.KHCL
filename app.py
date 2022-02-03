@@ -1,78 +1,60 @@
+import glob
+import os
+import re
 import timeit
-from werkzeug.utils import secure_filename
+
 import cv2
+import numpy as np
+import tensorflow as tf
+import tensorflow_hub as hub
+from cnn import search as CNNSearch
+from flask import Flask, flash, redirect, render_template, request, url_for
+from PIL import Image, ImageOps
+from resnet import search as ResNetSearch
+from scipy.spatial import cKDTree
+from skimage.measure import ransac
+from skimage.transform import AffineTransform
 from sklearn.linear_model._ransac import _dynamic_max_trials
 from sklearn.utils import check_random_state
-import re
-import tensorflow_hub as hub
-import glob
-from flask import Flask, flash, request, redirect, url_for, render_template
-import tensorflow as tf
 from tensorflow.python.util import deprecation
-from skimage.transform import AffineTransform
-from skimage.measure import ransac
-from scipy.spatial import cKDTree
-from PIL import Image, ImageOps
-import numpy as np
-import os
+from werkzeug.utils import secure_filename
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'static/upload/'
-
-app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SECRET_KEY'] = "secret_key"
+app.config['UPLOAD_FOLDER'] = "static/upload/"
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = set(['jpg'])
 
-
 def allowedFile(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 def num_sort(test_string):
     return list(map(int, re.findall(r'\d+', test_string)))[0]
 
-
-def get_resized_db_image_paths(destfolder='./static/images/resized_paris'):
+def get_resized_db_image_paths(destfolder):
     db = (list(glob.iglob(os.path.join(destfolder, '*.[Jj][Pp][Gg]'))))
     db.sort(key=num_sort)
     return db
 
-
 def preloadData(dataset="oxford"):
     global d_tree, locations_agg, accumulated_indexes_boundaries, building_descs, db_images, base, descriptors_agg
 
-    _db = "database"
-    _feature = "feature"
-    _resized = "resized"
-
-    if dataset == "paris":
-        _db += "_paris"
-        _feature += "_paris"
-        _resized += "_paris"
-
     # Preloaded data
-    locations_agg = np.load('./static/images/' + _feature + '/locations.npy')
+    locations_agg = np.load('./static/images/feature_' + dataset + '/locations.npy')
     descriptors_agg = np.load(
-        './static/images/' + _feature + '/descriptors.npy')
+        './static/images/feature_' + dataset + '/descriptors.npy')
     accumulated_indexes_boundaries = np.load(
-        './static/images/' + _feature + '/accumulated_indexes_boundaries.npy')
+        './static/images/feature_' + dataset + '/accumulated_indexes_boundaries.npy')
 
-    if dataset == "paris":
-        with open("database_paris.txt", "r") as file:
-            building_descs = file.readlines()
-        with open("resized_paris.txt") as file1:
-            db_images = file1.readlines()
-    else:
-        with open("database_oxford.txt", "r") as file:
-            building_descs = file.readlines()
-        with open("resized_oxford.txt") as file1:
-            db_images = file1.readlines()
+    with open("./static/database_" + dataset + ".txt", "r") as file:
+        building_descs = file.readlines()
+    with open("./static/resized_" + dataset + ".txt") as file1:
+        db_images = file1.readlines()
 
     base = building_descs
 
@@ -230,7 +212,6 @@ def image_index_2_accumulated_indexes(index, accumulated_indexes_boundaries):
 
 delf = hub.load('model').signatures['default']
 
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -290,133 +271,80 @@ def crop():
 
 @app.route("/search", methods=["POST"])
 def search2():
-    upload_img_path = "./static/query/query.jpg"
-    image = Image.open(upload_img_path)
-
-    resized_image = resize(image)
+    data = dict(request.form)
 
     start = timeit.default_timer()
 
-    result = run_delf(resized_image)
+    upload_img_path = "./static/query/query.jpg"
 
-    query_image_locations, query_image_descriptors = result['locations'], result['descriptors']
-    print(len(query_image_descriptors[0]))
-    distance_threshold = 0.8
-    # K nearest neighbors
-    K = 10
-    distances, indices = d_tree.query(
-        query_image_descriptors, distance_upper_bound=distance_threshold, k=K, n_jobs=-1)
+    if data["method"] == "delf":
+        #-------------------------- DELF --------------------------
+        image = Image.open(upload_img_path)
+        resized_image = resize(image)
 
-    unique_indices = np.array(list(set(indices.flatten())))
+        result = run_delf(resized_image)
 
-    unique_indices.sort()
-    if unique_indices[-1] == descriptors_agg.shape[0]:
-        unique_indices = unique_indices[:-1]
+        query_image_locations, query_image_descriptors = result['locations'], result['descriptors']
+        print(len(query_image_descriptors[0]))
+        distance_threshold = 0.8
+        # K nearest neighbors
+        K = 10
+        distances, indices = d_tree.query(
+            query_image_descriptors, distance_upper_bound=distance_threshold, k=K, n_jobs=-1)
 
-    unique_image_indexes = np.array(
-        list(set([np.argmax([np.array(accumulated_indexes_boundaries) > index])
-                  for index in unique_indices])))
+        unique_indices = np.array(list(set(indices.flatten())))
 
-    inliers_counts = []
+        unique_indices.sort()
+        if unique_indices[-1] == descriptors_agg.shape[0]:
+            unique_indices = unique_indices[:-1]
 
-    for index in unique_image_indexes:
-        locations_2_use_query, locations_2_use_db = get_locations_2_use(
-            index, indices, accumulated_indexes_boundaries, query_image_locations, locations_agg)
-        # Perform geometric verification using RANSAC.
-        _, inliers = ransac(
-            # source and destination coordinates
-            (locations_2_use_db, locations_2_use_query),
-            AffineTransform,
-            min_samples=5,
-            residual_threshold=20,
-            max_trials=50)
-        # If no inlier is found for a database candidate image, we continue on to the next one.
-        if inliers is None or len(inliers) == 0:
-            continue
-        # the number of inliers as the score for retrieved images.
-        inliers_counts.append({"index": index, "inliers": sum(inliers)})
+        unique_image_indexes = np.array(
+            list(set([np.argmax([np.array(accumulated_indexes_boundaries) > index])
+                    for index in unique_indices])))
 
-    top_match = sorted(
-        inliers_counts, key=lambda k: k['inliers'], reverse=True)
-    score = []
-    for i in range(len(top_match)):
-        index = top_match[i]
-        index = index['index']
-        score.append((building_descs[index], db_images[index], base[index]))
+        inliers_counts = []
+
+        for index in unique_image_indexes:
+            locations_2_use_query, locations_2_use_db = get_locations_2_use(
+                index, indices, accumulated_indexes_boundaries, query_image_locations, locations_agg)
+            # Perform geometric verification using RANSAC.
+            _, inliers = ransac(
+                # source and destination coordinates
+                (locations_2_use_db, locations_2_use_query),
+                AffineTransform,
+                min_samples=5,
+                residual_threshold=20,
+                max_trials=50)
+            # If no inlier is found for a database candidate image, we continue on to the next one.
+            if inliers is None or len(inliers) == 0:
+                continue
+            # the number of inliers as the score for retrieved images.
+            inliers_counts.append({"index": index, "inliers": sum(inliers)})
+
+        top_match = sorted(
+            inliers_counts, key=lambda k: k['inliers'], reverse=True)
+
+        scores = []
+
+        for i in range(len(top_match)):
+            index = top_match[i]
+            index = index['index']
+            scores.append((building_descs[index], db_images[index], base[index]))
+        #-------------------------- DELF --------------------------
+    elif data["method"] == "cnn":
+        #-------------------------- CNN --------------------------
+        scores = CNNSearch(upload_img_path)
+        #-------------------------- CNN --------------------------
+    elif data["method"] == "resnet":
+        #-------------------------- CNN --------------------------
+        scores = ResNetSearch(upload_img_path)
+        #-------------------------- CNN --------------------------
 
     end = timeit.default_timer()
 
-    # print("---------------------------------------")
-    # print(score)
+    return_data = {"scores": scores, "elapsed": end-start}
 
-    return_data = {"scores": score, "elapsed": end-start}
-
-    # return render_template("search.html", query_path=upload_img_path, scores=score, elapsed=end-start)
     return return_data
-
-@app.route('/<filename>')
-def search(filename):
-    # upload_img_path = "static/upload/" + filename
-    upload_img_path = "./static/query/query.jpg"
-    image = Image.open(upload_img_path)
-
-    resized_image = resize(image)
-
-    start = timeit.default_timer()
-
-    result = run_delf(resized_image)
-
-    query_image_locations, query_image_descriptors = result['locations'], result['descriptors']
-    print(len(query_image_descriptors[0]))
-    distance_threshold = 0.8
-    # K nearest neighbors
-    K = 10
-    distances, indices = d_tree.query(
-        query_image_descriptors, distance_upper_bound=distance_threshold, k=K, n_jobs=-1)
-
-    unique_indices = np.array(list(set(indices.flatten())))
-
-    unique_indices.sort()
-    if unique_indices[-1] == descriptors_agg.shape[0]:
-        unique_indices = unique_indices[:-1]
-
-    unique_image_indexes = np.array(
-        list(set([np.argmax([np.array(accumulated_indexes_boundaries) > index])
-                  for index in unique_indices])))
-
-    inliers_counts = []
-
-    for index in unique_image_indexes:
-        locations_2_use_query, locations_2_use_db = get_locations_2_use(
-            index, indices, accumulated_indexes_boundaries, query_image_locations, locations_agg)
-        # Perform geometric verification using RANSAC.
-        _, inliers = ransac(
-            # source and destination coordinates
-            (locations_2_use_db, locations_2_use_query),
-            AffineTransform,
-            min_samples=5,
-            residual_threshold=20,
-            max_trials=50)
-        # If no inlier is found for a database candidate image, we continue on to the next one.
-        if inliers is None or len(inliers) == 0:
-            continue
-        # the number of inliers as the score for retrieved images.
-        inliers_counts.append({"index": index, "inliers": sum(inliers)})
-
-    top_match = sorted(
-        inliers_counts, key=lambda k: k['inliers'], reverse=True)
-    score = []
-    for i in range(len(top_match)):
-        index = top_match[i]
-        index = index['index']
-        score.append((building_descs[index], db_images[index], base[index]))
-
-    end = timeit.default_timer()
-
-    # print("---------------------------------------")
-    # print(score)
-
-    return render_template("search.html", query_path=upload_img_path, scores=score, elapsed=end-start)
 
 
 if __name__ == "__main__":

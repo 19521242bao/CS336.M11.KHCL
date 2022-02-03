@@ -1,3 +1,17 @@
+from numba import jit
+import numba
+import logging
+import re
+from sklearn.linear_model._ransac import _dynamic_max_trials
+from itertools import accumulate
+import glob
+from sklearn.utils import check_random_state
+from six.moves.urllib.request import urlopen
+import tensorflow_hub as hub
+import tensorflow.compat.v1 as tf
+import silence_tensorflow.auto
+from tensorflow.python.util import deprecation
+import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageOps
@@ -7,26 +21,12 @@ from skimage.transform import AffineTransform
 from six import BytesIO
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import tensorflow as tf
-from tensorflow.python.util import deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
-import silence_tensorflow.auto
-import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
-import tensorflow_hub as hub
-from six.moves.urllib.request import urlopen
-from sklearn.utils import check_random_state
-import glob
-from itertools import accumulate
-from sklearn.linear_model._ransac import _dynamic_max_trials
 np.random.seed(10)
-from tensorflow.python.util import deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
-import re
-import logging
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
-import numba
-from numba import jit
+
 
 def image_input_fn(image_files):
     filename_queue = tf.train.string_input_producer(
@@ -44,7 +44,9 @@ def image_input_fn(image_files):
 # for utf8_row in reader:
 #     building_descs.append(utf8_row[0])
 
+
 """## Resize all database images"""
+
 
 def resize_image(srcfile, destfile='static/upload/query.jpg', new_width=256, new_height=256):
     # pil_image = Image.open(srcfile)
@@ -54,19 +56,18 @@ def resize_image(srcfile, destfile='static/upload/query.jpg', new_width=256, new
     return destfile
 
 
-
 def resize_images_folder(srcfolder, destfolder='./static/images/resized_paris', new_width=256, new_height=256):
-    os.makedirs(destfolder,exist_ok=True)
+    os.makedirs(destfolder, exist_ok=True)
     for srcfile in glob.iglob(os.path.join('./static/images/database_paris', '*.[Jj][Pp][Gg]')):
         src_basename = os.path.basename(srcfile)
-        destfile=os.path.join(destfolder,src_basename)
+        destfile = os.path.join(destfolder, src_basename)
         srcfile = Image.open(srcfile)
         resize_image(srcfile, destfile, new_width, new_height)
     return destfolder
 
 
-def num_sort(test_string): 
-    return list(map(int, re.findall(r'\d+', test_string)))[0] 
+def num_sort(test_string):
+    return list(map(int, re.findall(r'\d+', test_string)))[0]
 
 
 def get_resized_db_image_paths(destfolder='./static/images/resized'):
@@ -86,7 +87,6 @@ def get_resized_db_image_paths(destfolder='./static/images/resized'):
 #     results_dict[image_path] = sess.run(
 #         [module_outputs['locations'], module_outputs['descriptors']],
 #         feed_dict={image_placeholder: image})
-
 
 
 def compute_locations_and_descriptors(image_path):
@@ -142,11 +142,12 @@ def image_index_2_accumulated_indexes(index, accumulated_indexes_boundaries):
     else:
         accumulated_index_start = accumulated_indexes_boundaries[index-1]
         accumulated_index_end = accumulated_indexes_boundaries[index]
-    return np.arange(accumulated_index_start,accumulated_index_end)
+    return np.arange(accumulated_index_start, accumulated_index_end)
 
 
 def get_locations_2_use(image_db_index, k_nearest_indices, accumulated_indexes_boundaries, query_image_locations, locations_agg):
-    image_accumulated_indexes = image_index_2_accumulated_indexes(image_db_index, accumulated_indexes_boundaries)
+    image_accumulated_indexes = image_index_2_accumulated_indexes(
+        image_db_index, accumulated_indexes_boundaries)
     locations_2_use_query = []
     locations_2_use_db = []
     for i, row in enumerate(k_nearest_indices):
@@ -194,10 +195,11 @@ def ransac(data, model_class, min_samples, residual_threshold,
                          " The vector of initial inliers should have the same length"
                          " as the number of samples and contain only True (this sample"
                          " is an initial inlier) and False (this one isn't) values."
-                          % (len(initial_inliers), num_samples))
+                         % (len(initial_inliers), num_samples))
 
     # for the first run use initial guess of inliers
-    spl_idxs = (initial_inliers if initial_inliers is not None else random_state.choice(num_samples, min_samples, replace=False))
+    spl_idxs = (initial_inliers if initial_inliers is not None else random_state.choice(
+        num_samples, min_samples, replace=False))
 
     for num_trials in range(max_trials):
         # do sample selection according data pairs
@@ -245,7 +247,7 @@ def ransac(data, model_class, min_samples, residual_threshold,
                                                      stop_probability)
             if (best_inlier_num >= stop_sample_num
                 or best_inlier_residuals_sum <= stop_residuals_sum
-                or num_trials >= dynamic_max_trials):
+                    or num_trials >= dynamic_max_trials):
                 break
 
     # estimate final model using all inliers
@@ -258,4 +260,3 @@ def ransac(data, model_class, min_samples, residual_threshold,
         best_inliers = None
 
     return best_model, best_inliers
-

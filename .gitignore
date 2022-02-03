@@ -1,6 +1,3 @@
 **/static/**/*.jpg
 **/static/**/*.npy
-**/feature_extraction_method_1
-cnnImageRetrievalPytorch.py
-test_app.py
-**/cirtorch
+data/networks/gl18-tl-resnet152-gem-w-21278d5.pth
