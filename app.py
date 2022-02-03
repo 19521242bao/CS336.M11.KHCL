@@ -26,7 +26,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = "secret_key"
-app.config['UPLOAD_FOLDER'] = "static/upload/"
+app.config['UPLOAD_FOLDER'] = "static/uploads/"
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = set(['jpg'])
@@ -46,11 +46,11 @@ def preloadData(dataset="oxford"):
     global d_tree, locations_agg, accumulated_indexes_boundaries, building_descs, db_images, base, descriptors_agg
 
     # Preloaded data
-    locations_agg = np.load('./static/images/feature_' + dataset + '/locations.npy')
+    locations_agg = np.load('./static/features/feature_' + dataset + '/locations.npy')
     descriptors_agg = np.load(
-        './static/images/feature_' + dataset + '/descriptors.npy')
+        './static/features/feature_' + dataset + '/descriptors.npy')
     accumulated_indexes_boundaries = np.load(
-        './static/images/feature_' + dataset + '/accumulated_indexes_boundaries.npy')
+        './static/features/feature_' + dataset + '/accumulated_indexes_boundaries.npy')
 
     with open("./static/database_" + dataset + ".txt", "r") as file:
         building_descs = file.readlines()
@@ -227,7 +227,7 @@ def index():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             #print('upload_image filename: ' + filename)
-            flash('Image successfully uploaded!')
+            flash('Image successfully uploads!')
             return render_template('index.html', filename=filename)
         else:
             flash('Only JPG is allowed!')
@@ -239,7 +239,7 @@ def index():
 @app.route('/display/<filename>')
 def display(filename):
     #print('display filename: ' + filename)
-    return redirect(url_for('static', filename='upload/' + filename), code=301)
+    return redirect(url_for('static', filename='uploads/' + filename), code=301)
 
 
 @app.route('/crop', methods=['POST'])
@@ -251,7 +251,7 @@ def crop():
     preloadData(data["dataset"])
     
 
-    filePath = url_for('static', filename='upload/' + data["file"])
+    filePath = url_for('static', filename='uploads/' + data["file"])
     filePathNorm = filePath.replace("/", "\\\\")[2:]
     print(filePathNorm)
 

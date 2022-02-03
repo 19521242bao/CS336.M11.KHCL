@@ -24,7 +24,7 @@ def load_features(path, corpus):
     with tqdm(total=len(corpus)) as pbar:
         for img in corpus:
             feature_method_1[img] = np.load(
-                path + 'static/images/feature_oxford_2/' + img[:-3] + 'npy')
+                path + 'static/features/feature_oxford_2/' + img[:-3] + 'npy')
             pbar.update(1)
     print(">>> Sucess...")
     print('__________________________\n')

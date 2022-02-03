@@ -45,7 +45,7 @@ def retrieve_img_resnet(img_path, features_storage, input_path):
 
 
 def search(query_path):
-    feature_path = "./static/images/feature_resnet/RESNET.npz"
+    feature_path = "./static/features/feature_resnet/RESNET.npz"
     input_path = "./static/images/database_oxford"
     data = np.load(feature_path, allow_pickle=True)
     features_storage = data['features']

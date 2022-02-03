@@ -48,7 +48,7 @@ def image_input_fn(image_files):
 """## Resize all database images"""
 
 
-def resize_image(srcfile, destfile='static/upload/query.jpg', new_width=256, new_height=256):
+def resize_image(srcfile, destfile='static/uploads/query.jpg', new_width=256, new_height=256):
     # pil_image = Image.open(srcfile)
     pil_image = ImageOps.fit(srcfile, (new_width, new_height), Image.ANTIALIAS)
     pil_image_rgb = pil_image.convert('RGB')
