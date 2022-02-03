@@ -38,8 +38,8 @@
                         <label for="methods">Method:</label>
                         <select name="methods" id="methods">
                             <option value="delf" selected>DELF</option>
-                            <option value="resnet">ResNet</option>
-                            <option value="cnn">CNN</option>
+                            <option value="cnn">CNN (ResNet)</option>
+                            <option value="cnn_pytorch">CNN Pytorch</option>
                         </select>
                         <label for="datasets">Dataset:</label>
                         <select name="datasets" id="datasets">
@@ -83,12 +83,12 @@
                         $("#datasets").append('<option id="oxford" value="paris">Paris</option>');
                         break;
 
-                    case "resnet":
+                    case "cnn":
                         $("#datasets option").remove();
                         $("#datasets").append('<option id="oxford" value="oxford">Oxford</option>');
                         break;
 
-                    case "cnn":
+                    case "cnn_pytorch":
                         $("#datasets option").remove();
                         $("#datasets").append('<option id="oxford" value="oxford">Oxford</option>');
                         break;

@@ -2,8 +2,8 @@ import numpy as np
 import argparse
 from scipy import spatial
 from sklearn.neighbors import BallTree
-from resnet_config import SIZE_PROJECTION
-from resnet_utils import signature_bit
+from cnn_config import SIZE_PROJECTION
+from cnn_utils import signature_bit
 import math
 
 class Cosine_Measure:
