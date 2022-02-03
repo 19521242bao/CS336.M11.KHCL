@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
 from cnn import search as CNNSearch
+from cnn import preload as CNNPreload
 from flask import Flask, flash, redirect, render_template, request, url_for
 from PIL import Image, ImageOps
 from resnet import search as ResNetSearch
@@ -270,7 +271,7 @@ def crop():
     return ""
 
 @app.route("/search", methods=["POST"])
-def search2():
+def search():
     data = dict(request.form)
 
     start = timeit.default_timer()
@@ -330,15 +331,11 @@ def search2():
             index = top_match[i]
             index = index['index']
             scores.append((building_descs[index], db_images[index], base[index]))
-        #-------------------------- DELF --------------------------
     elif data["method"] == "cnn":
-        #-------------------------- CNN --------------------------
-        scores = CNNSearch(upload_img_path)
-        #-------------------------- CNN --------------------------
+        if __name__ == "__main__":
+            scores = CNNSearch(upload_img_path, feature_corpus, net, transform, ms)
     elif data["method"] == "resnet":
-        #-------------------------- RESNET --------------------------
         scores = ResNetSearch(upload_img_path)
-        #-------------------------- RESNET --------------------------
 
     end = timeit.default_timer()
 
@@ -346,6 +343,6 @@ def search2():
 
     return return_data
 
-
 if __name__ == "__main__":
+    feature_corpus, net, transform, ms = CNNPreload()
     app.run(debug=True)
