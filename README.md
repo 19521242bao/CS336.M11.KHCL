@@ -1,14 +1,18 @@
 # CS336.M11.KHCL 
-Information Retrieval Final Project
+Information Retrieval Final Project  
+Supported features:
+- Retrieve methods DELF, CNN (ResNet), CNNIRPYTORCH are available on web app.
+- Particular object search: allow user to choose a specific area of the query image.
 
 # Contributors
-|Name               | Email                  | Github profile                                        |
-|-------------------|------------------------|-------------------------------------------------------|
-|Phạm Ngọc Dương    | 19521412@gm.uit.edu.vn | [pnd280](https://github.com/pnd280)                   |
-|Lương Phạm Bảo     | 19521242@gm.uit.edu.vn | [19521242bao](https://github.com/19521242bao)         |
-|Nguyễn Gia Thống   | 19520993@gm.uit.edu.vn | -                                                     |
+|Name               | Email                  | Github profile                                |
+|-------------------|------------------------|-----------------------------------------------|
+|Phạm Ngọc Dương    | 19521412@gm.uit.edu.vn | [pnd280](https://github.com/pnd280)           |
+|Lương Phạm Bảo     | 19521242@gm.uit.edu.vn | [19521242bao](https://github.com/19521242bao) |
+|Nguyễn Gia Thống   | 19520993@gm.uit.edu.vn | -                                             |
 
-# Repo structure
+# Repo structure 
+Overview
 ```
 .
 ├── ...
@@ -32,7 +36,7 @@ Folders:
 You can clone this repo and install datasets separately or you can download the whole compressed file that we have already downloaded and structured.
 
 ## Install datasets separately
-Download the compressed file [here]() and we require user an extra structuring step, **./static** should look like this:
+Download the compressed file [here](https://drive.google.com/file/d/1ZVeavzf2ohoQrhxA17rBQ_2HacANbBGP/view?usp=sharing) and we require user an extra structuring step, **./static** should look like this:
 
 ```
 static
@@ -84,4 +88,4 @@ Of course the cropped part will be the new query.
 ![Demo](https://github.com/19521242bao/CS336_M11.KHCL/blob/Web-app/demo/CNN_all_souls_1.png?raw=true)
 
 ## Video
-https://youtu.be/FNoluBtsCA0
+[![Demo](https://github.com/19521242bao/CS336_M11.KHCL/blob/Web-app/demo/YTThumbnail.png?raw=true)](https://www.youtube.com/watch?v=FNoluBtsCA0)
