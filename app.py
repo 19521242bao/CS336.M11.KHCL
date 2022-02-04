@@ -279,7 +279,6 @@ def search():
     upload_img_path = "./static/query/query.jpg"
 
     if data["method"] == "delf":
-        #-------------------------- DELF --------------------------
         image = Image.open(upload_img_path)
         resized_image = resize(image)
 

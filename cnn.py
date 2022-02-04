@@ -27,7 +27,7 @@ def retrieve_img_resnet(img_path, features_storage, input_path):
     extractor = None
     extractor = DeepRESNET()
     img = cv2.imread(img_path)
-    # print(img)
+
     query_feature = extractor.extract(img)
 
     measure = Cosine_Measure()
