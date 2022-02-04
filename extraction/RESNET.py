@@ -15,7 +15,7 @@ class DeepRESNET:
 
     def __init__(self):
         self.model  = ResNet50(weights='imagenet', include_top=True)
-        self.model.summary()
+        # self.model.summary()
 
     def extract(self, img ):
         img = cv2.resize(img, (224, 224))
@@ -36,8 +36,8 @@ def main(args):
     extractor = DeepRESNET()
     feature = extractor.extract(img)
     feature2 = extractor.extract(img)
-    print("Shape feature: ", feature.shape)
-    print("Shape feature 2: ", feature2.shape)
+    # print("Shape feature: ", feature.shape)
+    # print("Shape feature 2: ", feature2.shape)
 def args_parser():
 
     parser = argparse.ArgumentParser(description="Methods extract image.")
@@ -50,9 +50,9 @@ if __name__ == "__main__":
     args = args_parser()
     # End default optional arguments
     # Print info arguments
-    print("Extract feature from image.".upper().center(100))
-    print(str("-"*63).center(100))
-    print("|{:<30}:\n|{:<30}|".format("Image path", args['input_path']).center(100))
-    print(str("-"*63).center(100))
+    # print("Extract feature from image.".upper().center(100))
+    # print(str("-"*63).center(100))
+    # print("|{:<30}:\n|{:<30}|".format("Image path", args['input_path']).center(100))
+    # print(str("-"*63).center(100))
 
     main(args)  
