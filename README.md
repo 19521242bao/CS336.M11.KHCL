@@ -1,7 +1,7 @@
 # CS336.M11.KHCL 
 Information Retrieval Final Project  
 Supported features:
-- Retrieve methods DELF, CNN (ResNet), CNNIRPYTORCH are available on web app.
+- Retrieval methods DELF, CNN (ResNet), CNNIRPYTORCH are available on web app.
 - Particular object search: allow user to choose a specific area of the query image.
 
 # Contributors
