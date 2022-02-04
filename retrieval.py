@@ -270,7 +270,7 @@ def retrieval_image(query_path, method, dataset="oxford"):
 if __name__ == "__main__":
     
     # app.run(debug=True)
-    res = retrieval_image(r"C:\Users\PND280\Documents\GitHub\CS336_M11.KHCL\static\images\database_oxford\all_souls_000006.jpg", "cnn")
+    res = retrieval_image(r"C:\Users\PND280\Documents\GitHub\CS336_M11.KHCL\static\images\database_oxford\all_souls_000006.jpg", "delf")
     # print(res)
     ranked_list = []
     for item in res:
