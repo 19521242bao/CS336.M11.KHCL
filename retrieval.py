@@ -24,7 +24,6 @@ from werkzeug.utils import secure_filename
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 
-
 def num_sort(test_string):
     return list(map(int, re.findall(r'\d+', test_string)))[0]
 
@@ -268,12 +267,6 @@ def retrieval_image(query_path, method, dataset="oxford"):
     return scores
 
 if __name__ == "__main__":
-    
-    # app.run(debug=True)
     res = retrieval_image(r"C:\Users\PND280\Documents\GitHub\CS336_M11.KHCL\static\images\database_oxford\all_souls_000006.jpg", "delf")
-    # print(res)
-    ranked_list = []
-    for item in res:
-        ranked_list.append(item[2].split("/")[len(item[2].split("/"))-1][:-5])
+    print(res)
 
-    print(ranked_list)
