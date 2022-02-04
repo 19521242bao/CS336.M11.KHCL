@@ -5,22 +5,24 @@ import numpy as np
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.models import Model 
 
 class DeepVGG16:
 
     def __init__(self):
-        self.model  = VGG16(weights='imagenet', include_top=True)
-        self.model.summary()
+        base_model = VGG16(weights='imagenet')
+        self.model = Model(inputs=base_model.input, outputs=base_model.get_layer('fc1').output)
 
     def extract(self, img ):
-        img = cv2.resize(img, (224, 224))
+        img = img.resize( (224, 224))
+        img=img.convert('RGB')
         img_data = image.img_to_array(img)
         img_data = np.expand_dims(img_data, axis=0)
         img_data = preprocess_input(img_data)
 
-        vgg16_feature = self.model.predict(img_data)
+        feature = self.model.predict(img_data)[0]
 
-        return vgg16_feature.flatten()
+        return feature/np.linalg.norm(feature)
 
 
 
