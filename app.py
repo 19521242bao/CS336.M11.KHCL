@@ -227,7 +227,7 @@ def index():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             #print('upload_image filename: ' + filename)
-            flash('Image successfully uploads!')
+            flash('Image successfully uploaded!')
             return render_template('index.html', filename=filename)
         else:
             flash('Only JPG is allowed!')
